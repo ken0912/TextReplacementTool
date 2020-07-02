@@ -2,7 +2,7 @@ package main
 
 import (
 	cfg "TextReplacementTool/utils"
-	"fmt"
+	"TextReplacementTool/utils/logger"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -22,6 +22,9 @@ var (
 
 func main() {
 	path := "./config/config.ini"
+
+	log := logger.NewFileLog("debug", "./", "log.log", 1024*10*1024)
+
 	config := new(cfg.Config)
 	config.InitConfig(path)
 	sourcePath = config.Read("replaceconfig", "sourcePath")
@@ -40,7 +43,7 @@ func main() {
 
 		content, err := ioutil.ReadFile(v)
 		if err != nil {
-			fmt.Println("err:", err)
+			log.Error("err:", err)
 			panic(err)
 		}
 		newcontent := string(content)
@@ -54,17 +57,17 @@ func main() {
 			func(file string, content []byte) {
 				nf, err := os.OpenFile(file, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 				if err != nil {
-					fmt.Println("err:", file, err)
+					log.Error("err:%v:%v", file, err)
 					panic(err)
 				}
 				defer nf.Close()
 				_, err = nf.WriteString(newcontent)
 				if err != nil {
-					fmt.Println("err:", err)
+					log.Error("err:", err)
 					panic(err)
 				}
 			}(v, content)
-			fmt.Printf("%v done.\n", v)
+			log.Trace("%v replace done.", v)
 		}
 
 	}

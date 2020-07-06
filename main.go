@@ -1,12 +1,13 @@
 package main
 
 import (
-	cfg "TextReplacementTool/utils"
 	"TextReplacementTool/utils/logger"
+	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
+
+	"gopkg.in/ini.v1"
 )
 
 var (
@@ -24,16 +25,28 @@ func main() {
 	path := "./config/config.ini"
 
 	log := logger.NewFileLog("debug", "./", "log.log", 1024*10*1024)
+	/*
+		config := new(cfg.Config)
+		config.InitConfig(path)
+		sourcePath = config.Read("replaceconfig", "sourcePath")
+		// targetPath = config.Read("replaceconfig", "targetPath")
+		fileType = config.Read("replaceconfig", "fileType")
+		oldString = config.Read("replaceconfig", "oldString")
+		newString = config.Read("replaceconfig", "newString")
+	*/
+	cfg, err := ini.Load(path)
+	if err != nil {
+		fmt.Printf("Fail to read file: %v", err)
+		os.Exit(1)
+	}
+	sourcePath = cfg.Section("replaceconfig").Key("sourcePath").String()
+	targetPath = cfg.Section("local_db").Key("targetPath").String()
+	fileType = cfg.Section("local_db").Key("fileType").String()
+	oldString = cfg.Section("local_db").Key("oldString").String()
+	newString = cfg.Section("local_db").Key("newString").String()
 
-	config := new(cfg.Config)
-	config.InitConfig(path)
-	sourcePath = config.Read("replaceconfig", "sourcePath")
-	// targetPath = config.Read("replaceconfig", "targetPath")
-	fileType = config.Read("replaceconfig", "fileType")
-	oldString = config.Read("replaceconfig", "oldString")
-	newString = config.Read("replaceconfig", "newString")
+	isProcessSubDir = cfg.Section("local_db").Key("newString").MustBool()
 
-	isProcessSubDir, err = strconv.ParseBool(config.Read("replaceconfig", "isProcessSubDir"))
 	if err != nil {
 		panic(err)
 	}
